@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caderno de TIC</title>
+<style>
+:root {
+  font-family: Arial, sans-serif;
+  color: #183c50;
+  background: #eef6fb;
+  font-size: 18px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+header {
+  background: #174960;
+  color: white;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+h1 { font-size: 1.5rem; margin: 0; }
+h2 { font-size: 1.5rem; }
+p, li { line-height: 1.6; }
+main { max-width: 1000px; margin: auto; padding: 24px 18px; }
+button, .card {
+  font: inherit;
+  color: #183c50;
+  background: white;
+  border: 2px solid #b7cedb;
+  border-radius: 16px;
+  padding: 16px;
+  min-height: 56px;
+}
+button { cursor: pointer; }
+button:hover, .card:hover { border-color: #176b91; }
+button:focus-visible, a:focus-visible,
+input:focus-visible, summary:focus-visible {
+  outline: 4px solid #d49400;
+  outline-offset: 4px;
+}
+button:disabled { opacity: .65; cursor: default; }
+.primary { background: #176b91; color: white; border-color: #176b91; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+.card {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 6px solid #208b9b;
+}
+.icon { font-size: 2.6rem; }
+.small { font-size: .9rem; color: #526675; }
+.panel {
+  background: white;
+  border: 1px solid #cfdee8;
+  border-radius: 22px;
+  padding: 24px;
+  margin: 20px 0;
+}
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px; }
+details { background: #deedf5; border-radius: 14px; padding: 18px; margin: 20px 0; }
+summary { cursor: pointer; font-weight: bold; }
+.stimulus {
+  text-align: center;
+  font-size: clamp(2.5rem, 7vw, 4rem);
+  padding: 22px 8px;
+  overflow-wrap: anywhere;
+}
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 700px;
+  margin: 20px auto;
+}
+.choice { font-size: 1.5rem; min-height: 110px; overflow-wrap: anywhere; }
+.feedback { min-height: 34px; text-align: center; font-weight: bold; }
+.center { text-align: center; }
+input {
+  font: inherit;
+  padding: 14px;
+  border: 2px solid #8ba7b8;
+  border-radius: 10px;
+  max-width: 100%;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 2px solid #8ba7b8;
+  border-radius: 12px;
+  background: white;
+  margin: 18px 0;
+  touch-action: none;
+}
+#pause {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: #eef6fb;
+  padding: 15vh 20px;
+  text-align: center;
+}
+footer { text-align: center; padding: 20px; font-size: .85rem; color: #526675; }
+@media (max-width: 500px) {
+  h1 { font-size: 1.15rem; }
+  header { align-items: flex-start; }
+  .panel { padding: 16px; }
+  .choice { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>📘 Caderno de TIC</h1>
+  <button id="pauseButton">Fazer uma pausa</button>
+</header>
+<main id="app"></main>
+<section id="pause" hidden aria-label="Pausa">
+  <div class="icon" aria-hidden="true">☁️</div>
+  <h2>Tempo de pausa</h2>
+  <p>Volta quando estiveres pronta.</p>
+  <button id="resume" class="primary">Continuar</button>
+</section>
+<footer>Sem cronómetro · Sem contas de aluna · Sem recolha de resultados</footer>
+
+<script>
+"use strict";
+
+const app = document.getElementById("app");
+const esc = value => String(value).replace(/[&<>"']/g, c => ({
+  "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+}[c]));
+
+const q = (instruction, image, correct, alternative) => ({
+  instruction, image, correct, options: [correct, alternative]
+});
+
+const apples = n => n === 0 ? "Nenhuma maçã" : Array(n).fill("🍎").join(" ");
+const counts = ns => ns.map(n =>
+  q("Conta. Escolhe o número.", apples(n), String(n), String(n === 0 ? 1 : n - 1))
+);
+
+const activities = [];
+function add(title, group, icon, type, items, goal) {
+  activities.push({
+    id: activities.length + 1, title, group, icon, type, items, goal
+  });
+}
+
+add("Descobre as imagens", "O computador", "📦", "reveal",
+  ["🐶", "⚽", "🍎", "🚗"],
+  "Clicar numa caixa. Depois de abrir, pedir que aponte a imagem igual num cartão. A resposta é observada por quem acompanha.");
+
+add("Conheço os equipamentos", "O computador", "🖥️", "quiz", [
+  q("Clica no rato.", "", "🖱️", "⌨️"),
+  q("Clica no teclado.", "", "⌨️", "🖥️"),
+  q("Clica no monitor.", "", "🖥️", "🎧"),
+  q("Clica nos auscultadores.", "", "🎧", "🖱️")
+], "Reconhecer equipamentos. Mostrar primeiro o equipamento real.");
+
+add("Imagens iguais", "O computador", "🐶", "quiz", [
+  q("Escolhe a imagem igual.", "🐶", "🐶", "🐱"),
+  q("Escolhe a imagem igual.", "⚽", "⚽", "🍎"),
+  q("Escolhe a imagem igual.", "📘", "📘", "🚗"),
+  q("Escolhe a imagem igual.", "🐱", "🐱", "🐶")
+], "Relacionar imagens através de cliques, sem exigir arrastamento.");
+
+add("Cuido do computador", "O computador", "🖱️", "quiz", [
+  q("Onde ponho o copo?", "", "Longe do teclado", "Junto ao teclado"),
+  q("Como uso o rato?", "", "Com cuidado", "Com força"),
+  q("Como devem estar as mãos?", "", "Secas", "Molhadas")
+], "Reconhecer cuidados básicos. Ler as opções e demonstrar com objetos reais.");
+
+add("Conheço os comandos", "O computador", "▶️", "quiz", [
+  q("Escolhe o botão para começar.", "", "▶ Começar", "✖ Fechar"),
+  q("Escolhe o botão para repetir.", "", "↻ Repetir", "✖ Fechar"),
+  q("Escolhe o botão para terminar.", "", "✖ Fechar", "▶ Começar")
+], "Reconhecer comandos. Mostrar também os botões reais das aplicações.");
+
+add("Cores iguais", "Cores e formas", "🔵", "quiz", [
+  q("Escolhe a mesma cor.", "🔴", "🔴", "🔵"),
+  q("Escolhe a mesma cor.", "🔵", "🔵", "🟡"),
+  q("Escolhe a mesma cor.", "🟡", "🟡", "🔴"),
+  q("Escolhe a mesma cor.", "🟢", "🟢", "🔵")
+], "Relacionar cores e selecionar uma opção.");
+
+add("Junta as cores", "Cores e formas", "🎨", "quiz", [
+  q("Escolhe a cor da maçã.", "🍎", "🔴", "🔵"),
+  q("Escolhe a cor do limão.", "🍋", "🟡", "🔵"),
+  q("Escolhe a cor da folha.", "🍃", "🟢", "🔴")
+], "Relacionar objetos e cores. Confirmar a aparência dos símbolos no computador.");
+
+add("Formas iguais", "Cores e formas", "🔺", "quiz", [
+  q("Escolhe a forma igual.", "●", "●", "■"),
+  q("Escolhe a forma igual.", "■", "■", "▲"),
+  q("Escolhe a forma igual.", "▲", "▲", "●")
+], "Reconhecer círculo, quadrado e triângulo.");
+
+add("Grande e pequeno", "Cores e formas", "⚪", "size", [
+  q("Escolhe o círculo grande.", "", "grande", "pequeno"),
+  q("Escolhe o círculo pequeno.", "", "pequeno", "grande"),
+  q("Escolhe o círculo grande.", "", "grande", "pequeno")
+], "Comparar tamanhos e clicar num alvo.");
+
+add("O que vem a seguir?", "Cores e formas", "🔷", "quiz", [
+  q("Escolhe o que vem a seguir.", "● ■ ● __", "■", "●"),
+  q("Escolhe o que vem a seguir.", "🍎 🍐 🍎 __", "🍐", "🍎"),
+  q("Escolhe o que vem a seguir.", "▲ ● ▲ __", "●", "▲")
+], "Completar padrões com dois elementos. Apontar ao ler a sequência.");
+
+add("Conta até 3", "Números e cálculos", "🍎", "quiz", counts([1,2,3,2]),
+  "Contar e selecionar o numeral. Permitir apontar para cada objeto.");
+
+add("Conta até 5", "Números e cálculos", "🖐️", "quiz", counts([2,3,4,5]),
+  "Relacionar quantidades e numerais até 5.");
+
+add("Descobre e conta", "Números e cálculos", "📦", "reveal",
+  [apples(0), apples(1), apples(3), apples(5)],
+  "Abrir uma caixa e contar. Pedir que escolha um cartão numeral. A aplicação não avalia esta resposta.");
+
+add("Conta até 10", "Números e cálculos", "🔟", "quiz", counts([6,7,8,10]),
+  "Contar até 10. Usar objetos reais se necessário.");
+
+add("Falta um número", "Números e cálculos", "🔢", "quiz", [
+  q("Escolhe o número que falta.", "1, 2, __, 4", "3", "5"),
+  q("Escolhe o número que falta.", "3, __, 5", "4", "2"),
+  q("Escolhe o número que falta.", "6, 7, __", "8", "9"),
+  q("Escolhe o número que falta.", "8, __, 10", "9", "7")
+], "Completar espaços em sequências numéricas.");
+
+add("Mais e menos", "Números e cálculos", "⚖️", "quiz", [
+  q("Escolhe onde há mais.", "", apples(4), apples(2)),
+  q("Escolhe onde há mais.", "", apples(5), apples(3)),
+  q("Escolhe onde há menos.", "", apples(2), apples(4)),
+  q("Escolhe onde há menos.", "", apples(3), apples(6))
+], "Comparar quantidades. Ler a instrução de cada exercício: os últimos pedem menos.");
+
+add("Junta e conta", "Números e cálculos", "➕", "quiz", [
+  q("Junta. Conta.", "🍎 + 🍎", "2", "3"),
+  q("Junta. Conta.", "🍎 🍎 + 🍎", "3", "2"),
+  q("Junta. Conta.", "🍎 🍎 + 🍎 🍎", "4", "3"),
+  q("Junta. Conta.", "🍎 🍎 🍎 + 🍎", "4", "5")
+], "Fazer adições simples com apoio visual.");
+
+add("Retira e conta", "Números e cálculos", "➖", "quiz", [
+  q("Retira 1. Quantos ficam?", apples(3), "2", "3"),
+  q("Retira 1. Quantos ficam?", apples(4), "3", "4"),
+  q("Retira 2. Quantos ficam?", apples(5), "3", "2")
+], "Representar a retirada com objetos reais. O ecrã mostra o conjunto inicial.");
+
+add("Uma dezena e unidades", "Números e cálculos", "🔢", "quiz", [
+  q("10 mais 1. Escolhe o número.", "10 + 1", "11", "10"),
+  q("10 mais 2. Escolhe o número.", "10 + 2", "12", "11"),
+  q("10 mais 5. Escolhe o número.", "10 + 5", "15", "14"),
+  q("10 mais 10. Escolhe o número.", "10 + 10", "20", "19")
+], "Extensão opcional. Utilizar grupos reais de dez objetos. Avançar depois de consolidar até 10.");
+
+add("Letras iguais", "Letras e palavras", "🔤", "quiz", [
+  q("Escolhe a letra igual.", "A", "A", "E"),
+  q("Escolhe a letra igual.", "E", "E", "I"),
+  q("Escolhe a letra igual.", "I", "I", "O"),
+  q("Escolhe a letra igual.", "O", "O", "U"),
+  q("Escolhe a letra igual.", "U", "U", "A")
+], "Reconhecer vogais. Localizar depois uma letra no teclado.");
+
+add("Escrevo o meu nome", "Letras e palavras", "⌨️", "type", [],
+  "Quem acompanha escreve um modelo. A aluna copia. O nome não é enviado nem guardado e desaparece ao sair da atividade.");
+
+add("Palavra e imagem", "Letras e palavras", "🐱", "quiz", [
+  q("Escolhe a imagem.", "GATO", "🐱", "🐶"),
+  q("Escolhe a imagem.", "BOLA", "⚽", "🏠"),
+  q("Escolhe a imagem.", "CASA", "🏠", "☀️"),
+  q("Escolhe a imagem.", "SOL", "☀️", "🐱")
+], "Relacionar palavras e imagens. Ler a palavra se for necessário.");
+
+add("Completa a frase", "Letras e palavras", "📝", "quiz", [
+  q("Escolhe a palavra que falta.", "💧 Bebo __.", "água", "sapatos"),
+  q("Escolhe a palavra que falta.", "👟 Calço os __.", "sapatos", "lápis"),
+  q("Escolhe a palavra que falta.", "✏️ Escrevo com o __.", "lápis", "copo")
+], "Completar frases com apoio visual. Ler a frase e as opções.");
+
+add("Ajuda, pausa e terminar", "Autonomia", "🗓️", "quiz", [
+  q("Precisas de ajuda. O que podes dizer?", "", "Ajuda, por favor.", "Terminei."),
+  q("Precisas de descansar. O que podes dizer?", "", "Quero uma pausa.", "Quero começar."),
+  q("Já acabaste. O que podes dizer?", "", "Terminei.", "Quero ajuda.")
+], "Aceitar fala, gesto ou comunicação alternativa. Não exigir expressão oral.");
+
+add("Escolho e desenho", "Autonomia", "🖍️", "draw", [],
+  "Escolher uma cor, desenhar e guardar uma imagem. Demonstrar o botão Guardar. O desenho é descarregado no dispositivo.");
+
+let current = null;
+let index = 0;
+let locked = false;
+
+function home() {
+  current = null;
+  const groups = [...new Set(activities.map(a => a.group))];
+  app.innerHTML = `
+    <h2>Escolhe uma atividade</h2>
+    <p>Uma atividade de cada vez. Podes repetir.</p>
+    <details>
+      <summary>Para a docente e quem acompanha</summary>
+      <p>25 atividades para cerca de 50 aulas. Apresentar e acompanhar
+      na primeira aula; repetir com menos apoio na segunda.
+      Ajustar ao ritmo individual.</p>
+      <ol>
+        <li>Mostrar a rotina: atividade, pausa, terminar.</li>
+        <li>Dizer uma instrução e demonstrar um exemplo.</li>
+        <li>Aguardar. Se necessário, dar uma pista visual ou repetir.</li>
+        <li>Registar o conteúdo aprendido e o apoio necessário.</li>
+      </ol>
+      <p>Os símbolos coloridos podem variar entre dispositivos.
+      Confirmar que são compreendidos pela aluna.
+      Os conteúdos são uma seleção inicial do 1.º e 2.º anos.</p>
+    </details>
+    ${groups.map(group => `
+      <h2>${esc(group)}</h2>
+      <div class="grid">
+      ${activities.filter(a => a.group === group).map(a => `
+        <a class="card" href="#atividade=${a.id}">
+          <span class="icon" aria-hidden="true">${a.icon}</span>
+          <strong>${esc(a.title)}</strong>
+          <span class="small">Atividade ${a.id} ·
+          Aulas ${a.id * 2 - 1}–${a.id * 2}</span>
+        </a>
+      `).join("")}
+      </div>
+    `).join("")}`;
+}
+
+function route() {
+  const match = location.hash.match(/^#atividade=(\d+)$/);
+  current = match ? activities.find(a => a.id === Number(match[1])) : null;
+  index = 0;
+  if (current) render();
+  else home();
+}
+
+function shell() {
+  app.innerHTML = `
+    <div class="toolbar">
+      <button id="home">Todas as atividades</button>
+      <button id="copy">Copiar link</button>
+    </div>
+    <h2>${current.icon} ${esc(current.title)}</h2>
+    <details>
+      <summary>Orientações para quem acompanha</summary>
+      <p><strong>Objetivo:</strong> ${esc(current.goal)}</p>
+      <p><strong>Como orientar:</strong> demonstrar um exemplo,
+      dizer uma instrução de cada vez e dar tempo.
+      Permitir pedir ajuda ou pausa.</p>
+      <p><strong>Observar:</strong> resposta ao conteúdo,
+      utilização do computador e apoio necessário.</p>
+    </details>
+    <section class="panel" id="exercise"></section>`;
+
+  document.getElementById("home").onclick = () => { location.hash = ""; };
+  document.getElementById("copy").onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(location.href);
+      document.getElementById("copy").textContent = "Link copiado";
+    } catch {
+      window.prompt("Copia este link:", location.href);
+    }
+  };
+}
+
+function render() {
+  locked = false;
+  shell();
+  const box = document.getElementById("exercise");
+
+  if (current.type === "reveal") {
+    box.innerHTML = `
+      <h2>Abre uma caixa.</h2>
+      <div class="grid">
+      ${current.items.map((item, i) => `
+        <button class="choice" data-box="${i}"
+        aria-label="Abrir caixa ${i + 1}">📦 ${i + 1}</button>
+      `).join("")}
+      </div>
+      <p class="feedback" id="revealFeedback" aria-live="polite"></p>
+      <p class="center"><button id="repeat">Fechar as caixas e repetir</button></p>`;
+    box.querySelectorAll("[data-box]").forEach(button => {
+      button.onclick = () => {
+        const item = current.items[Number(button.dataset.box)];
+        button.textContent = item;
+        button.setAttribute("aria-label", item);
+        document.getElementById("revealFeedback").textContent =
+          "Observa. Mostra a resposta a quem te acompanha.";
+      };
+    });
+    document.getElementById("repeat").onclick = render;
+    return;
+  }
+
+  if (current.type === "type") {
+    typing(box);
+    return;
+  }
+
+  if (current.type === "draw") {
+    drawing(box);
+    return;
+  }
+
+  if (index >= current.items.length) {
+    box.innerHTML = `
+      <div class="stimulus" aria-hidden="true">⭐</div>
+      <h2 class="center" id="done" tabindex="-1">Terminaste!</h2>
+      <p class="center">Podes repetir ou fazer uma pausa.</p>
+      <p class="center"><button id="repeat" class="primary">Repetir</button></p>`;
+    document.getElementById("repeat").onclick = () => {
+      index = 0;
+      render();
+    };
+    document.getElementById("done").focus();
+    return;
+  }
+
+  const item = current.items[index];
+  // A resposta correta alterna de posição.
+  const options = index % 2 ? [...item.options].reverse() : item.options;
+
+  box.innerHTML = `
+    <p class="small">Exercício ${index + 1} de ${current.items.length}</p>
+    <h2 id="instruction" tabindex="-1">${esc(item.instruction)}</h2>
+    <div class="stimulus">${esc(item.image)}</div>
+    <div class="choices">
+    ${options.map(option => {
+      const content = current.type === "size"
+        ? `<span aria-hidden="true" style="display:inline-block;
+          background:#24799a;border-radius:50%;
+          width:${option === "grande" ? 80 : 30}px;
+          height:${option === "grande" ? 80 : 30}px"></span>`
+        : esc(option);
+      const label = current.type === "size"
+        ? `aria-label="Círculo ${option}"` : "";
+      return `<button class="choice" data-answer="${esc(option)}"
+        ${label}>${content}</button>`;
+    }).join("")}
+    </div>
+    <p id="feedback" class="feedback" aria-live="polite"></p>
+    <p class="center">
+      <button id="next" class="primary" hidden>Continuar</button>
+    </p>`;
+
+  box.querySelectorAll("[data-answer]").forEach(button => {
+    button.onclick = () => {
+      if (locked) return;
+      if (button.dataset.answer === item.correct) {
+        locked = true;
+        document.getElementById("feedback").textContent = "Conseguiste!";
+        box.querySelectorAll("[data-answer]").forEach(b => b.disabled = true);
+        document.getElementById("next").hidden = false;
+        document.getElementById("next").focus();
+      } else {
+        document.getElementById("feedback").textContent =
+          "Observa outra vez. Podes pedir ajuda.";
+      }
+    };
+  });
+
+  document.getElementById("next").onclick = () => {
+    index++;
+    render();
+    document.getElementById("instruction")?.focus();
+  };
+}
+
+function typing(box) {
+  box.innerHTML = `
+    <label for="model">Nome para copiar — preenchido por quem acompanha</label>
+    <p><input id="model" maxlength="60" autocomplete="off"></p>
+    <button id="start" class="primary">Começar</button>
+    <div id="typing"></div>`;
+
+  document.getElementById("start").onclick = () => {
+    const model = document.getElementById("model").value.trim();
+    if (!model) {
+      document.getElementById("model").focus();
+      return;
+    }
+    document.getElementById("typing").innerHTML = `
+      <h2>Copia o teu nome.</h2>
+      <p class="stimulus">${esc(model)}</p>
+      <input id="answer" aria-label="Escreve o nome"
+      maxlength="60" autocomplete="off">
+      <p><button id="check" class="primary">Verificar</button></p>
+      <p id="feedback" class="feedback" aria-live="polite"></p>`;
+
+    document.getElementById("check").onclick = () => {
+      const answer = document.getElementById("answer").value.trim();
+      const correct = answer.toLocaleLowerCase("pt-PT") ===
+        model.toLocaleLowerCase("pt-PT");
+      document.getElementById("feedback").textContent = correct
+        ? "Conseguiste!"
+        : "Observa o modelo. Podes tentar outra vez.";
+    };
+    document.getElementById("answer").focus();
+  };
+}
+
+function drawing(box) {
+  const colours = [
+    ["Azul", "#176b91"], ["Vermelho", "#bd283a"],
+    ["Verde", "#227640"], ["Amarelo", "#d59e00"]
+  ];
+  box.innerHTML = `
+    <h2>Escolhe uma cor. Desenha.</h2>
+    <div class="toolbar">
+      ${colours.map(([name, colour], i) => `
+        <button data-colour="${colour}"
+        aria-pressed="${i === 0}">${name}</button>
+      `).join("")}
+    </div>
+    <canvas id="canvas" width="800" height="400"
+    aria-label="Área de desenho com rato ou toque"></canvas>
+    <p>Podes também adicionar uma estrela com o botão.</p>
+    <div class="toolbar">
+      <button id="star">Adicionar uma estrela</button>
+      <button id="clear">Limpar</button>
+      <button id="save" class="primary">Guardar desenho</button>
+    </div>
+    <p id="drawFeedback" aria-live="polite"></p>`;
+
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  let colour = colours[0][1];
+  let active = false;
+
+  function clear() {
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  clear();
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+
+  box.querySelectorAll("[data-colour]").forEach(button => {
+    button.onclick = () => {
+      colour = button.dataset.colour;
+      box.querySelectorAll("[data-colour]").forEach(b =>
+        b.setAttribute("aria-pressed", String(b === button))
+      );
+    };
+  });
+
+  function point(event) {
+    const rect = canvas.getBoundingClientRect();
+    return [
+      (event.clientX - rect.left) * canvas.width / rect.width,
+      (event.clientY - rect.top) * canvas.height / rect.height
+    ];
+  }
+
+  canvas.onpointerdown = event => {
+    active = true;
+    canvas.setPointerCapture(event.pointerId);
+    const [x, y] = point(event);
+    ctx.fillStyle = colour;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.strokeStyle = colour;
+    ctx.moveTo(x, y);
+  };
+  canvas.onpointermove = event => {
+    if (!active) return;
+    ctx.lineTo(...point(event));
+    ctx.stroke();
+  };
+  canvas.onpointerup = canvas.onpointercancel = () => { active = false; };
+
+  document.getElementById("star").onclick = () => {
+    ctx.fillStyle = colour;
+    ctx.font = "110px Arial";
+    ctx.fillText("★", 345, 240);
+  };
+  document.getElementById("clear").onclick = clear;
+  document.getElementById("save").onclick = () => {
+    const link = document.createElement("a");
+    link.download = "o-meu-desenho.png";
+    link.href = canvas.toDataURL("image/png");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    document.getElementById("drawFeedback").textContent =
+      "O desenho foi preparado para descarregar.";
+  };
+}
+
+let previousFocus;
+document.getElementById("pauseButton").onclick = () => {
+  previousFocus = document.activeElement;
+  document.getElementById("pause").hidden = false;
+  app.inert = true;
+  document.getElementById("pauseButton").disabled = true;
+  document.getElementById("resume").focus();
+};
+document.getElementById("resume").onclick = () => {
+  document.getElementById("pause").hidden = true;
+  app.inert = false;
+  document.getElementById("pauseButton").disabled = false;
+  previousFocus?.focus();
+};
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
