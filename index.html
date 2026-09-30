@@ -297,6 +297,71 @@ add("Ajuda, pausa e terminar", "Autonomia", "🗓️", "quiz", [
 add("Escolho e desenho", "Autonomia", "🖍️", "draw", [],
   "Escolher uma cor, desenhar e guardar uma imagem. Demonstrar o botão Guardar. O desenho é descarregado no dispositivo.");
 
+  // ATIVIDADES 26–35 — CONHECER E UTILIZAR O COMPUTADOR
+
+add("Computador e objetos", "Conhecer melhor o computador", "🖥️", "quiz", [
+  q("Escolhe o equipamento do computador.", "", "⌨️", "🍎"),
+  q("Escolhe o equipamento do computador.", "", "🖱️", "⚽"),
+  q("Escolhe o equipamento do computador.", "", "🖥️", "👟"),
+  q("Escolhe o equipamento para ouvir.", "", "🎧", "✏️")
+], "Distinguir equipamentos de objetos do quotidiano. Mostrar os objetos reais quando possível.");
+
+add("Para que serve?", "Conhecer melhor o computador", "🖱️", "quiz", [
+  q("O que uso para escrever?", "", "⌨️", "🎧"),
+  q("Onde vejo as imagens?", "", "🖥️", "🖱️"),
+  q("O que uso para mover o ponteiro?", "", "🖱️", "⌨️"),
+  q("O que uso para ouvir?", "", "🎧", "🖥️")
+], "Relacionar equipamentos e funções. Depois de cada resposta, experimentar a função no equipamento real.");
+
+add("Encontra a tecla", "Conhecer melhor o computador", "🔤", "quiz", [
+  q("Escolhe a letra A.", "", "A", "O"),
+  q("Escolhe o número 1.", "", "1", "3"),
+  q("Escolhe a letra M.", "", "M", "N"),
+  q("Escolhe o número 2.", "", "2", "5")
+], "Reconhecer letras e números. Depois da escolha no ecrã, pedir que encontre a mesma tecla no teclado real.");
+
+add("Conheço três teclas", "Conhecer melhor o computador", "⌨️", "quiz", [
+  q("Qual tecla faz um espaço?", "", "Espaço", "Enter"),
+  q("Qual tecla apaga a letra anterior?", "", "⌫ Backspace", "Espaço"),
+  q("Qual tecla muda de linha num texto?", "", "Enter", "⌫ Backspace")
+], "Reconhecer Espaço, Backspace e Enter. Ler as opções. Demonstrar numa aplicação de texto e permitir experimentar.");
+
+add("Escrevo palavras pequenas", "Conhecer melhor o computador", "✍️", "type", [],
+  "Usar o campo do modelo para escrever SOL, LUA ou GATO, em vez do nome. A aluna copia uma palavra de cada vez. Para mudar de palavra, alterar o modelo e carregar em Começar. Os textos desta atividade não são guardados.");
+
+add("Reconheço os símbolos", "Conhecer melhor o computador", "💾", "quiz", [
+  q("Escolhe o símbolo para guardar.", "", "💾", "🔊"),
+  q("Escolhe o símbolo para imprimir.", "", "🖨️", "📁"),
+  q("Escolhe a pasta.", "", "📁", "🖨️"),
+  q("Escolhe o símbolo do som.", "", "🔊", "💾")
+], "Reconhecer símbolos comuns. Comparar com os símbolos reais das aplicações utilizadas, que podem ser diferentes.");
+
+add("Som ligado e desligado", "Conhecer melhor o computador", "🔊", "quiz", [
+  q("Escolhe o símbolo de som ligado.", "", "🔊", "🔇"),
+  q("Escolhe o símbolo de som desligado.", "", "🔇", "🔊"),
+  q("O som está demasiado alto. O que faço?", "", "Baixo o volume.", "Aumento o volume.")
+], "Reconhecer os símbolos de som. Esta atividade não reproduz áudio nem altera o volume. Demonstrar os comandos reais, respeitando a preferência da aluna.");
+
+add("A pasta e o ficheiro", "Conhecer melhor o computador", "📁", "quiz", [
+  q("Escolhe a pasta.", "", "📁", "📄"),
+  q("Escolhe o ficheiro.", "", "📄", "📁"),
+  q("Onde posso organizar ficheiros?", "", "📁 Numa pasta", "🖱️ No rato")
+], "Distinguir pasta e ficheiro. Mostrar uma pasta de exemplo no computador com dois ficheiros sem dados pessoais.");
+
+add("Abro uma atividade", "Conhecer melhor o computador", "🌐", "quiz", [
+  q("O que uso para abrir uma página da Internet?", "", "🌐 Navegador", "🧮 Calculadora"),
+  q("O que posso clicar para abrir a atividade?", "", "🔗 Link da atividade", "🔊 Volume"),
+  q("A página não abre. O que posso fazer?", "", "Pedir ajuda.", "Carregar muitas vezes."),
+  q("Como escolho outra atividade neste caderno?", "", "Todas as atividades", "Guardar desenho")
+], "Reconhecer ações de navegação. Depois do jogo, praticar abrir o link disponibilizado no Classroom com o apoio necessário.");
+
+add("Cuido de mim", "Conhecer melhor o computador", "🙋", "quiz", [
+  q("Como fico à frente do computador?", "", "Sentada de forma confortável.", "Com o corpo torcido."),
+  q("Como vejo o ecrã?", "", "A uma distância confortável.", "Com a cara encostada."),
+  q("Estou cansada. O que posso fazer?", "", "Pedir uma pausa.", "Continuar sem parar."),
+  q("Preciso de ajuda. O que posso fazer?", "", "Chamar quem me acompanha.", "Ficar sem fazer nada.")
+], "Trabalhar conforto, pausas e pedido de ajuda. Ler as opções e ajustar a posição ao corpo e às necessidades da aluna.");
+  
 let current = null;
 let index = 0;
 let locked = false;
@@ -309,7 +374,7 @@ function home() {
     <p>Uma atividade de cada vez. Podes repetir.</p>
     <details>
       <summary>Para a docente e quem acompanha</summary>
-      <p>25 atividades para cerca de 50 aulas. Apresentar e acompanhar
+      <p> 35 atividades para utilizar ao longo do ano. Apresentar e acompanhar
       na primeira aula; repetir com menos apoio na segunda.
       Ajustar ao ritmo individual.</p>
       <ol>
@@ -479,7 +544,7 @@ function render() {
 
 function typing(box) {
   box.innerHTML = `
-    <label for="model">Nome para copiar — preenchido por quem acompanha</label>
+    <label for="model">Modelo para copiar — preenchido por quem acompanha.</label>
     <p><input id="model" maxlength="60" autocomplete="off"></p>
     <button id="start" class="primary">Começar</button>
     <div id="typing"></div>`;
@@ -491,9 +556,9 @@ function typing(box) {
       return;
     }
     document.getElementById("typing").innerHTML = `
-      <h2>Copia o teu nome.</h2>
+      <h2>Copia o modelo.</h2>
       <p class="stimulus">${esc(model)}</p>
-      <input id="answer" aria-label="Escreve o nome"
+      <input id="answer" aria-label="Escreve o modelo."
       maxlength="60" autocomplete="off">
       <p><button id="check" class="primary">Verificar</button></p>
       <p id="feedback" class="feedback" aria-live="polite"></p>`;
